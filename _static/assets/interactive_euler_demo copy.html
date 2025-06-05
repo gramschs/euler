@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Euler-Verfahren Demonstration</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+        }
+        input[type="range"] {
+            width: 300px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #plot {
+            width: 100%;
+            height: 600px;
+            margin: 20px 0;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .info h3 {
+            margin-top: 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-box {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .current-step {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interaktive Demonstration Euler-Verfahren</h1>
+        <p>Differentialgleichung: <strong>dv/dt = -0.003 v²</strong> mit Anfangsbedingung v₀ = 5 bei t₀ = 0</p>
+        <p>Exakte Lösung: <strong>v(t) = 5/(0.015 t + 1)</strong></p>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="stepSize">Schrittweite (h):</label>
+                <input type="number" id="stepSize" value="25" min="1" max="100" step="1">
+                <button onclick="updateSimulation()">Aktualisieren</button>
+            </div>
+            <div class="control-group">
+                <label for="animationSlider">Animationsfortschritt:</label>
+                <input type="range" id="animationSlider" min="0" max="100" value="0" step="1">
+                <span id="progressText">0%</span>
+            </div>
+            <div class="control-group">
+                <button onclick="resetAnimation()">Zurücksetzen</button>
+                <button onclick="playAnimation()">Abspielen</button>
+                <button onclick="pauseAnimation()">Pausieren</button>
+            </div>
+        </div>
+        
+        <div id="plot"></div>
+        
+        <div class="info">
+            <div class="current-step">
+                <h3>Aktueller Schritt</h3>
+                <p id="currentStep">Schritt: 0, Zeit: 0 s, Geschwindigkeit: 5,00 m/s</p>
+                <p id="derivative">Ableitung: dv/dt = -0,075 m/s^2</p>
+            </div>
+            
+            <h3>Statistische Auswertung</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Anzahl Gitterpunkte</div>
+                    <div class="stat-value" id="numGridPoints">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Gesamtfehler (RMSE)</div>
+                    <div class="stat-value" id="totalError">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Maximaler Fehler</div>
+                    <div class="stat-value" id="maxError">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Relativer Endfehler (%)</div>
+                    <div class="stat-value" id="relativeEndError">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Globale Variablen
+        let stepSize = 25;
+        let animationProgress = 0;
+        let eulerPoints = [];
+        let exactPoints = [];
+        let totalSteps = 0;
+        let isPlaying = false;
+        let animationId = null;
+        
+        const slider = document.getElementById('animationSlider');
+        const stepSizeInput = document.getElementById('stepSize');
+        const progressText = document.getElementById('progressText');
+        const currentStepText = document.getElementById('currentStep');
+        const derivativeText = document.getElementById('derivative');
+        
+        // Zeitbereich
+        const maxTime = 300;
+        
+        // Exakte Lösung
+        function exactSolution(t) {
+            return 1 / (0.003 * t + 0.2);
+        }
+        
+        // Ableitung für Euler-Verfahren
+        function derivative(v) {
+            return -0.003 * v * v;
+        }
+        
+        // Berechnung der Euler-Punkte
+        function calculateEulerPoints(h) {
+            const points = [];
+            let t = 0;
+            let v = 5;
+            
+            points.push({t: t, v: v, dvdt: derivative(v)});
+            
+            while (t < maxTime) {
+                const dvdt = derivative(v);
+                const nextT = t + h;
+                const nextV = v + dvdt * h;
+                
+                if (nextT > maxTime) break;
+                
+                points.push({
+                    t: nextT, 
+                    v: nextV, 
+                    dvdt: dvdt,
+                    prevT: t,
+                    prevV: v
+                });
+                
+                t = nextT;
+                v = nextV;
+            }
+            
+            return points;
+        }
+        
+        // Berechnung der exakten Punkte
+        function calculateExactPoints() {
+            const points = [];
+            for (let t = 0; t <= maxTime; t += 1) {
+                points.push({t: t, v: exactSolution(t)});
+            }
+            return points;
+        }
+        
+        // Fehlerstatistiken berechnen
+        function calculateErrorStats() {
+            if (eulerPoints.length === 0) return;
+            
+            const errors = [];
+            let maxError = 0;
+            
+            // Berechne Fehler für jeden Euler-Punkt
+            eulerPoints.forEach(point => {
+                const exactValue = exactSolution(point.t);
+                const error = Math.abs(point.v - exactValue);
+                errors.push(error);
+                maxError = Math.max(maxError, error);
+            });
+            
+            // RMSE berechnen
+            const sumSquaredErrors = errors.reduce((sum, error) => sum + error * error, 0);
+            const rmse = Math.sqrt(sumSquaredErrors / errors.length);
+            
+            // Relativer Endfehler
+            const lastEulerPoint = eulerPoints[eulerPoints.length - 1];
+            const exactEndValue = exactSolution(lastEulerPoint.t);
+            const relativeEndError = Math.abs((lastEulerPoint.v - exactEndValue) / exactEndValue) * 100;
+            
+            // Aktualisiere Anzeige
+            document.getElementById('numGridPoints').textContent = eulerPoints.length;
+            document.getElementById('totalError').textContent = rmse.toFixed(4);
+            document.getElementById('maxError').textContent = maxError.toFixed(4);
+            document.getElementById('relativeEndError').textContent = relativeEndError.toFixed(2) + ' %';
+        }
+        
+        // Plot mit Plotly erstellen
+        function updatePlot() {
+            const maxStepsToDraw = Math.floor(animationProgress / 100 * (eulerPoints.length - 1));
+            
+            // Exakte Lösung
+            const exactTrace = {
+                x: exactPoints.map(p => p.t),
+                y: exactPoints.map(p => p.v),
+                type: 'scatter',
+                mode: 'lines',
+                name: 'exakte Lösung',
+                line: {color: 'black', width: 3}
+            };
+            
+            // Euler-Approximation (bisher berechnete Punkte)
+            const eulerPointsToShow = eulerPoints.slice(0, maxStepsToDraw + 1);
+            const eulerTrace = {
+                x: eulerPointsToShow.map(p => p.t),
+                y: eulerPointsToShow.map(p => p.v),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Euler-Approximation',
+                line: {color: 'red', width: 3},
+                marker: {color: 'red', size: 8, line: {color: 'black', width: 1}}
+            };
+            
+            // Tangentiallinien
+            const tangentTraces = [];
+            for (let i = 1; i <= maxStepsToDraw; i++) {
+                const point = eulerPoints[i];
+                if (point.prevT !== undefined) {
+                    tangentTraces.push({
+                        x: [point.prevT, point.t],
+                        y: [point.prevV, point.v],
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: i === 1 ? 'Tangentiallinien' : '',
+                        showlegend: false,
+                        line: {color: 'red', width: 2}
+                    });
+                }
+            }
+            
+            // Gitterlinien
+            const gridTraces = [];
+            for (let t = 0; t <= maxTime; t += stepSize) {
+                gridTraces.push({
+                    x: [t, t],
+                    y: [0, 6],
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: t === 0 ? 'Gitter' : '',
+                    showlegend: t === 0,
+                    line: {color: 'gray', width: 1, dash: 'dot'},
+                    opacity: 0.7
+                });
+            }
+            
+            const data = [exactTrace, eulerTrace, ...tangentTraces, ...gridTraces];
+            
+            const layout = {
+                title: 'Euler-Verfahren zur Lösung von dv/dt = -0.003 v²',
+                xaxis: {
+                    title: 't [s]',
+                    range: [0, maxTime],
+                    gridcolor: '#f0f0f0',
+                    showgrid: false
+                },
+                yaxis: {
+                    title: 'v [m/s]',
+                    range: [0, 6],
+                    gridcolor: '#f0f0f0',
+                    showgrid: false
+                },
+                legend: {
+                    x: 0.7,
+                    y: 0.95
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+            };
+            
+            Plotly.newPlot('plot', data, layout, config);
+        }
+        
+        // Simulation aktualisieren
+        function updateSimulation() {
+            stepSize = parseFloat(stepSizeInput.value);
+            eulerPoints = calculateEulerPoints(stepSize);
+            exactPoints = calculateExactPoints();
+            totalSteps = eulerPoints.length - 1;
+            calculateErrorStats();
+            updatePlot();
+            updateCurrentStepInfo();
+        }
+        
+        // Aktuelle Schritt-Informationen aktualisieren
+        function updateCurrentStepInfo() {
+            const currentStepIndex = Math.floor((animationProgress / 100) * (eulerPoints.length - 1));
+            if (currentStepIndex >= 0 && currentStepIndex < eulerPoints.length) {
+                const point = eulerPoints[currentStepIndex];
+                currentStepText.textContent = `Schritt: ${currentStepIndex}, Zeit: ${point.t.toFixed(1)} s, Geschwindigkeit: ${point.v.toFixed(2)} m/s`;
+                derivativeText.textContent = `Ableitung: dv/dt = ${point.dvdt.toFixed(4)} m/s^2`;
+            }
+        }
+        
+        // Animation zurücksetzen
+        function resetAnimation() {
+            animationProgress = 0;
+            slider.value = 0;
+            progressText.textContent = '0%';
+            updatePlot();
+            updateCurrentStepInfo();
+        }
+        
+        // Animation abspielen
+        function playAnimation() {
+            if (isPlaying) return;
+            isPlaying = true;
+            
+            function animate() {
+                if (!isPlaying) return;
+                
+                animationProgress += 0.5;
+                if (animationProgress > 100) {
+                    animationProgress = 100;
+                    isPlaying = false;
+                }
+                
+                slider.value = animationProgress;
+                progressText.textContent = Math.round(animationProgress) + '%';
+                updatePlot();
+                updateCurrentStepInfo();
+                
+                if (isPlaying) {
+                    animationId = requestAnimationFrame(animate);
+                }
+            }
+            
+            animate();
+        }
+        
+        // Animation pausieren
+        function pauseAnimation() {
+            isPlaying = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        // Slider Event-Listener
+        slider.addEventListener('input', function() {
+            animationProgress = parseFloat(this.value);
+            progressText.textContent = Math.round(animationProgress) + '%';
+            updatePlot();
+            updateCurrentStepInfo();
+        });
+        
+        // Initialisierung
+        updateSimulation();
+    </script>
+</body>
+</html>
