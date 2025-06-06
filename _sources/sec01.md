@@ -12,5 +12,3 @@ jupytext:
 
 # Das Euler-Verfahren
 
-TODO
-

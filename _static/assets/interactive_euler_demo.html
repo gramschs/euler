@@ -39,7 +39,7 @@
             min-width: 0; /* Allow content to shrink if needed */
         }
         label {
-            font-weight: bold;
+            
             white-space: nowrap; /* Prevent label text from wrapping */
         }
         input[type="number"] {
@@ -145,7 +145,8 @@
                 <button onclick="pauseAnimation()">Pausieren</button>
             </div>
         </div>
-        
+        <hr>
+        <h3>Euler-Verfahren zur Lösung von dv/dt = -0.003 v²</h3>    
         <div id="plot"></div>
         
         <div class="info">
@@ -331,7 +332,7 @@
             const data = [exactTrace, eulerTrace, ...tangentTraces, ...gridTraces];
             
             const layout = {
-                title: 'Euler-Verfahren zur Lösung von dv/dt = -0.003 v²',
+                //title: 'Euler-Verfahren zur Lösung von dv/dt = -0.003 v²',
                 xaxis: {
                     title: 't [s]',
                     range: [0, maxTime],
@@ -345,8 +346,11 @@
                     showgrid: false
                 },
                 legend: {
-                    x: 0.7,
-                    y: 0.95
+                    orientation: 'h',
+                    x: 0.5,
+                    xanchor: 'center',
+                    y: 1.02,
+                    yanchor: 'bottom'
                 },
                 plot_bgcolor: 'white',
                 paper_bgcolor: 'white'
