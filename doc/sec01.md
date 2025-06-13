@@ -34,7 +34,7 @@ Anfangswertproblems. Zum Verständnis benötigen wir Vorkenntnisse über
 
 ## Geschwindigkeit aus der Beschleunigung rekonstruieren
 
-Wir führen das folgenden Experiment aus. Eine Person setzt sich auf ein Bobby
+Wir führen das folgende Experiment aus. Eine Person setzt sich auf ein Bobby
 Car und fährt eine kurze Zeit, so schnell sie kann.
 
 ```{figure} pics/bobby_car_symbolbild.jpg
