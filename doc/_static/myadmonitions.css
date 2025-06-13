@@ -65,3 +65,10 @@ div.admonition.minisolution > .admonition-title:after {
       display: none; /* Hide tablet/laptop image */
   }
 }
+
+/* Responsive Bildanpassung */
+@media (max-width: 768px) {
+  .responsive-image img {
+    width: 100% !important;
+  }
+}
