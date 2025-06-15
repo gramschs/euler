@@ -60,7 +60,7 @@ Beschleunigungsmessungen, die wir mit dem Python-Modul Pandas importieren.
 ```{code-cell}
 import pandas as pd
 
-daten = pd.read_excel('data/Beschleunigung_V01.xls')
+daten = pd.read_csv('data/Beschleunigung_V01.csv')
 daten.info()
 ```
 
