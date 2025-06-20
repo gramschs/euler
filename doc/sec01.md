@@ -253,6 +253,10 @@ Anfangswertproblemes. Es hat aber auch Nachteile und lässt sich nicht immer
 stabil einsetzen. Im nächsten Abschnitt erkunden wir, welchen Einfluss die
 Schrittweite $h$ auf die Qualität der angenäherten Lösung hat.
 
+```{dropdown} Video "Euler Verfahren" von Kochrezepte für Mathematik
+<iframe width="560" height="315" src="https://www.youtube.com/embed/EhyNxBeNZuM?si=-7IA3p8mIU4aHDeC" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+```
+
 ## Einfluss der Schrittweite
 
 Wie gut die numerische Lösung eine exakte Lösung eines Anfangswertproblems
