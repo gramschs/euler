@@ -151,7 +151,7 @@ nacheinander die Geschwindigkeitswerte aus den diskreten
 Beschleunigungsmessungen:
 
 ```{code-cell}
-for i in range(1, N-1):
+for i in range(N-1):
     v[i+1] = v[i] + a[i] * (t[i+1] - t[i])
 ```
 
