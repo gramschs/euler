@@ -60,8 +60,15 @@ Beschleunigungsmessungen, die wir mit dem Python-Modul Pandas importieren.
 ```{code-cell}
 import pandas as pd
 
-daten = pd.read_csv('data/Beschleunigung_V01.csv')
+daten = pd.read_csv('data/Beschleunigung.csv')
 daten.info()
+```
+
+Mit der Methode `.head()` lassen wir uns die ersten 10 Zeilen der importierten
+Tabelle anzeigen:
+
+```{code-cell}
+daten.head(10)
 ```
 
 Wir verwenden das Python-Modul Plotly Express, um die Beschleunigungsdaten in
@@ -99,15 +106,14 @@ Formeln erhalten wir
 $$v_1 - v_0 = a_0 \cdot (t_1 - t_0)\quad
 \Rightarrow \quad v_1 = v_0 + a_0 \cdot (t_1 - t_0).$$
 
-In Python ergibt sich mit dem Anfangswert `v0 = 0`
+In Python ergibt sich mit dem Anfangswert `v0 = 0`:
 
 ```{code-cell}
-# Anfangswert
-t0 = 0
+# Anfangswert für t[0]
 v0 = 0
 
 # neue Geschwindigkeit
-v1 = v0 + a[0] * (t[1] - t0)
+v1 = v0 + a[0] * (t[1] - t[0])
 print(f'v1 = {v1}')
 ```
 
