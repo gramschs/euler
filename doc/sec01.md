@@ -16,7 +16,7 @@ Das Euler-Verfahren ist das einfachste numerische Verfahren zur Lösung eines
 Anfangswertproblems. Zum Verständnis benötigen wir Vorkenntnisse über
 
 * Differentialgleichungen 1. Ordnung,
-* Taylor-Polynom Grad 1 und
+* Taylorpolynom Grad 1 und
 * Python-Kenntnisse (Pandas, for-Schleife, Plotly).
 
 ## Lernziele
@@ -219,7 +219,7 @@ den Entwicklungspunkt $t_i$
 $$T_{1,x}(t) = x(t_{i}) + \dot{x}(t_{i}) \cdot (t-t_{i}).$$
 
 Wir gehen davon aus, dass wir in der Nähe des Entwicklungspunktes das
-Taylorpoluynom als Ersatz für die exakte Lösungsfunktion nehmen dürfen und
+Taylorpolynom als Ersatz für die exakte Lösungsfunktion nehmen dürfen und
 setzen für die erste Ableitung $\dot{x}$ die rechte Seite $f(t_i, x(t_i))$ der
 Differentialgleichung ein.
 
@@ -255,7 +255,7 @@ berechnen und so weiter, bis wir schließlich eine angenäherte Lösungsfunktion
 auf dem kompletten Intervall gefunden haben.
 
 Das Euler-Verfahren ist das einfachste numerische Verfahren zur Lösung eines
-Anfangswertproblemes. Es hat aber auch Nachteile und lässt sich nicht immer
+Anfangswertproblems. Es hat aber auch Nachteile und lässt sich nicht immer
 stabil einsetzen. Im nächsten Abschnitt erkunden wir, welchen Einfluss die
 Schrittweite $h$ auf die Qualität der angenäherten Lösung hat.
 
@@ -295,34 +295,36 @@ für die Abbremsung des Bobby-Cars. Variieren Sie die Schrittweite h und
 beobachten Sie, wie gut oder schlecht die Annäherung an die exakte Lösung ist.
 Legen Sie eine Tabelle an:
 
-| Schrittweite h    | Fehler     |
+| Schrittweite h    | relativer Endfehler in Prozent |
 | ------------- | ------------- |
 | 1 | ? |
 | 5 | ? |
 | ... | ??? |
 
-Stellen Sie eine Vermutung an. Wie hängt der Fehler von der Schrittweite ab?
+Stellen Sie eine Vermutung an. Wie hängt der Endfehler von der Schrittweite ab?
 ```
 
 ```{admonition} Lösung
 :class: minisolution, toggle
-Es gibt mehrere Fehlerarten. Wir betrachten hier den Gesamtfehler.
+Es gibt mehrere Fehlerarten. Wir betrachten hier den relativen Endfehler in
+Prozent.
 
-| Schrittweite h    | Gesamtfehler     |
+| Schrittweite h    | relativer Endfehler in Prozent  |
 | ------------- | ------------- |
-| 1   | 0.0091  |
-| 5   | 0.0467  |
-| 10  | 0.0967  |
-| 15  | 0.1511  |
-| 20  | 0.2113  |
-| 25  | 0.2790  |
-| 30  | 0.3561  |
-| 35  | 0.4568  |
-| 40  | 0.5617  |
-| 45  | 0.6923  |
-| 50  | 0.8024  |
+| 1   | 0.47  |
+| 5   | 2.35  |
+| 10  | 4.74  |
+| 15  | 7.20  |
+| 20  | 9.74  |
+| 25  | 12.41 |
+| 30  | 15.30 |
+| 35  | 19.05 |
+| 40  | 23.03 |
+| 45  | 28.54 |
+| 50  | 34.11 |
 
-Vermutung: der Fehler hängt quadratisch von der Schrittweite ab.
+Vermutung: für große Schrittweiten $h$ hängt der relative Endfehler linear von
+der Schrittweite ab.
 ```
 
 Wir können verschiedene Arten von Fehler in Abhängigkeit von der Schrittweite
@@ -340,9 +342,10 @@ Error](https://statorials.org/de/wie-man-rmse-interpretiert/) bezeichnet wird.
 Beim relativen Endfehler wird nur der letzte Gitterpunkt betrachtet und der
 Abstand zum exakten Funktionswert in Prozent angegeben.
 
-In dem folgenden Streudiagramm ist der Gesamtfeher (RMSE) für verschiedene
-Schrittweiten dargestellt. Wir vermuten, dass der Gesamtfehler von der
-Schrittweite quadratisch abhängt.
+In dem folgenden Streudiagramm ist der relative Endfehler in Prozent für
+verschiedene Schrittweiten dargestellt. Er summiert sich über alle
+Iterationen auf und wird daher auch als globaler Fehler bezeichnet. Beim
+Euler-Verfahren hängt er linear von der Schrittweite ab.
 
 ```{code-cell}
 :tags: [remove-input]
@@ -350,23 +353,25 @@ import numpy as np
 
 # data
 h = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-fehler = [0.0091, 0.0467, 0.0967, 0.1511, 0.2113, 0.2790, 0.3561, 0.4568, 0.5617, 0.6923, 0.8024]
+rmse_fehler = [0.0091, 0.0467, 0.0967, 0.1511, 0.2113, 0.2790, 0.3561, 0.4568, 0.5617, 0.6923, 0.8024]
+endfehler_in_prozent = [0.47, 2.35, 4.74, 7.2, 9.74, 12.41, 15.3, 19.05, 23.03, 28.54, 34.11]
 
 # regression
-p = [0.0002019, 0.00577465, 0.01144577]
+p = np.polyfit(h, endfehler_in_prozent, 1)
 x_model = np.linspace(0, 50, 101)
-y_model = p[0] * x_model**2 + p[1] * x_model + p[0]
+y_model = np.polyval(p, x_model)
 
 # plot
-fig = px.scatter(x = h, y = fehler,
-  title='Gesamtfehler abhängig von Schrittweite h',
-  labels={'x': 'Schrittweite h', 'y': 'Gesamtfehler'})
-fig.add_scatter(x = x_model, y = y_model, mode='lines', name='Modell')
+fig = px.scatter(x = h, y = endfehler_in_prozent,
+  title='Endfehler abhängig von Schrittweite h',
+  labels={'x': 'Schrittweite h', 'y': 'relativer Endfehler in Prozent'})
+fig.add_scatter(x = x_model, y = y_model, mode='lines', name='Regression')
 fig.show()
 ```
 
-Diese Vermutung kann auch mathematisch mit dem Restglied für die Taylor-Formel
-bestätigt werden.
+Wir können auch andere Fehler betrachten. Der Fehler, der von einer zu nächsten
+Iteration entsteht, wird beispielsweise als lokaler Fehler bezeichnet. Beim
+Euler-Verfahren ist der lokale Fehler quadratisch abhängig von der Schrittweite.
 
 ## Zusammenfassung und Ausblick
 
