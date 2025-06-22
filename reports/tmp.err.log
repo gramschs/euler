@@ -1,0 +1,53 @@
+Traceback (most recent call last):
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/site-packages/nbclient/client.py", line 1314, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/asyncio/base_events.py", line 685, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/python312/lib/python3.12/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import numpy as np
+import plotly.express as px
+
+# data
+h = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+fehler = [0.0091, 0.0467, 0.0967, 0.1511, 0.2113, 0.2790, 0.3561, 0.4568, 0.5617, 0.6923, 0.8024]
+endfehler_in_prozent = [0.47, 2.35, 4.74, 7.2, 9.74, 12.41, 15.3, 19.05, 23.03, 28.54, 34.11]
+
+# regression
+p = np.polyfit(h, endfehler, 1)
+x_model = np.linspace(0, 50, 101)
+y_model = np.polyval(p, x_model)
+
+# plot
+fig = px.scatter(x = h, y = endfehler,
+  title='Gesamtfehler abhängig von Schrittweite h',
+  labels={'x': 'Schrittweite h', 'y': 'Gesamtfehler in Prozent'})
+fig.add_scatter(x = x_model, y = y_model, mode='lines', name='Modell')
+fig.show()
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mNameError[0m                                 Traceback (most recent call last)
+Cell [0;32mIn[1], line 10[0m
+[1;32m      7[0m endfehler_in_prozent [38;5;241m=[39m [[38;5;241m0.47[39m, [38;5;241m2.35[39m, [38;5;241m4.74[39m, [38;5;241m7.2[39m, [38;5;241m9.74[39m, [38;5;241m12.41[39m, [38;5;241m15.3[39m, [38;5;241m19.05[39m, [38;5;241m23.03[39m, [38;5;241m28.54[39m, [38;5;241m34.11[39m]
+[1;32m      9[0m [38;5;66;03m# regression[39;00m
+[0;32m---> 10[0m p [38;5;241m=[39m np[38;5;241m.[39mpolyfit(h, [43mendfehler[49m, [38;5;241m1[39m)
+[1;32m     11[0m x_model [38;5;241m=[39m np[38;5;241m.[39mlinspace([38;5;241m0[39m, [38;5;241m50[39m, [38;5;241m101[39m)
+[1;32m     12[0m y_model [38;5;241m=[39m np[38;5;241m.[39mpolyval(p, x_model)
+
+[0;31mNameError[0m: name 'endfehler' is not defined
+
